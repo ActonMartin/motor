@@ -160,63 +160,72 @@ def switchmode(slave_addr,mode):
     return code + crc_code
 
 
-def straightinterpolation(slave_addr,x,y,z,a):
+class lianjicontrol:
     """
-    功能码127（0x7f) 字节计数11
-    直线插补
     :param slave_addr:
-    :param x: 数值
-    :param y: 数值
-    :param z: 数值
-    :param a: 数值
     :return:
     """
-    function_code = "7f"
-    byte_cal = "11"
-    command = '01'
-    def gethex(num):
-        """直线插补中计算十六进制"""
-        num_str = str(num)
-        if "." in num_str:
-            high = num_str.split(".")[0]
-            low = num_str.split(".")[1]
-            low_len = len(low)
-            if low_len < 3:
-                low = low + (3 - low_len) * "0"
-            all = high + low
-        else:
-            all = num_str + "000"
-        hex_num = hex(int(all))[2:]
-        length = len(hex_num)
-        if length < 8:
-            res = (8 - length) * "0" + hex_num
-        return res
-    code = slave_addr+function_code+byte_cal+command
-    x_hex, y_hex,z_hex,a_hex = gethex(x),gethex(y),gethex(z),gethex(a)
-    code = code + x_hex+y_hex+z_hex+a_hex
-    crc_code = CRC().crc16(code)
-    return code+crc_code
+    def __init__(self,slave_addr):
+        self.slave_addr = slave_addr
+        self.function_code = "7f"
+        self.byte_cal = "11"
 
-def gethex(num):
-    """直线插补中计算十六进制"""
-    num_str = str(num)
-    if "." in num_str:
-        high = num_str.split(".")[0]
-        low = num_str.split(".")[1]
-        low_len = len(low)
-        if low_len < 3:
-            low = low + (3 - low_len) * "0"
-        all = high + low
-    else:
-        all = num_str + "000"
-    hex_num = hex(int(all))[2:]
-    length = len(hex_num)
-    if length < 8:
-        res = (8 - length) * "0" + hex_num
-    return res
+    @staticmethod
+    def change_command_style(command):
+        """command 指令数字"""
+        command = hex(command)[2:]
+        command = (2-len(command))*'0' + command
+        return command
+
+    def straight_interpolation(self,x, y, z, a=None):
+        """
+        直线插补,字节计数11
+        """
+        command = 1
+        command = self.change_command_style(command)
+
+        def get_hex(num):
+            """直线插补中计算十六进制"""
+            num_str = str(num)
+            if "." in num_str:
+                high = num_str.split(".")[0]
+                low = num_str.split(".")[1]
+                low_len = len(low)
+                if low_len < 3:
+                    low = low + (3 - low_len) * "0"
+                all = high + low
+            else:
+                all = num_str + "000"
+            hex_num = hex(int(all))[2:]
+            length = len(hex_num)
+            if length < 8:
+                res = (8 - length) * "0" + hex_num
+            return res
+        code = self.slave_addr+self.function_code+self.byte_cal+command
+        x_hex, y_hex,z_hex,a_hex = get_hex(x),get_hex(y),get_hex(z),get_hex(a)
+        code = code + x_hex+y_hex+z_hex+a_hex
+        crc_code = CRC().crc16(code)
+        return code+crc_code
+
+    def changespeedandacceleration(self,speed, acceleration):
+        """
+        :param speed: 单位hz,为0时，不改变速度的设置
+        :param acceleration:为0时，不改变加速度的设置
+        :return:
+        """
+        command = 34
+        command = self.change_command_style(command)
+
+
+
+
+
+
+
 
 def gozero(slave_addr, direction):
-    """指定需要返回零点的轴，返回命令
+    """
+    指定需要返回零点的轴，返回命令
     direction : str 1 X,2 Y,3 YX,4 Z,5 ZX,6 ZY,7 ZYX,8 A,9 AX,10 AY,11 AYX,12 AZ,13 AZX,14 AZY,15 AZYX
     """
     crc = CRC()
@@ -261,7 +270,8 @@ def gozero(slave_addr, direction):
 
 if __name__ == "__main__":
     # kk = readregister('01',42,2)
-    kk = writestatus('01',73,00)
+    kk = lianjicontrol('01').straight_interpolation(10.001,20,30,40)
+
     print(kk)
 
 

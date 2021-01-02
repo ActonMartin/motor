@@ -22,4 +22,12 @@
 #     result.append(reverselowhigh(data_num[i]))
 # print(result)
 
-print(bin(int('cd',16)))
+def reverselowhigh(data_in):
+    data_temp = []
+    for i in range(0, len(data_in), 2):
+        data_temp.append(data_in[i:i + 2])
+    datareversal = ''.join(data_temp[::-1])
+    return datareversal
+print(hex(15))
+data = '00007530'
+print(reverselowhigh(data))
