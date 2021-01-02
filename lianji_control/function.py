@@ -177,6 +177,18 @@ class lianjicontrol:
         command = (2-len(command))*'0' + command
         return command
 
+    @staticmethod
+    def reverselowhigh(data_in):
+        """
+        传入data = '0000 03e8'
+        返回 e803 0000
+        """
+        data_temp = []
+        for i in range(0, len(data_in), 2):
+            data_temp.append(data_in[i:i + 2])
+        datareversal = ''.join(data_temp[::-1])
+        return datareversal
+
     def straight_interpolation(self,x, y, z, a=None):
         """
         直线插补,字节计数11
@@ -201,8 +213,10 @@ class lianjicontrol:
             if length < 8:
                 res = (8 - length) * "0" + hex_num
             return res
+
         code = self.slave_addr+self.function_code+self.byte_cal+command
         x_hex, y_hex,z_hex,a_hex = get_hex(x),get_hex(y),get_hex(z),get_hex(a)
+        x_hex, y_hex,z_hex,a_hex = self.reverselowhigh(x_hex),self.reverselowhigh(y_hex),self.reverselowhigh(z_hex),self.reverselowhigh(a_hex)
         code = code + x_hex+y_hex+z_hex+a_hex
         crc_code = CRC().crc16(code)
         return code+crc_code
@@ -270,7 +284,7 @@ def gozero(slave_addr, direction):
 
 if __name__ == "__main__":
     # kk = readregister('01',42,2)
-    kk = lianjicontrol('01').straight_interpolation(10.001,20,30,40)
+    kk = lianjicontrol('01').straight_interpolation(2,0,0,0)
 
     print(kk)
 

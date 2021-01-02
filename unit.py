@@ -23,11 +23,17 @@
 # print(result)
 
 def reverselowhigh(data_in):
+    """
+    传入data = '0000 03e8'
+    返回 e803 0000
+    """
     data_temp = []
     for i in range(0, len(data_in), 2):
         data_temp.append(data_in[i:i + 2])
     datareversal = ''.join(data_temp[::-1])
     return datareversal
-print(hex(15))
-data = '00007530'
+
+data = '000005dc'
 print(reverselowhigh(data))
+
+print(hex(1500))
