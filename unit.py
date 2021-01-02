@@ -28,8 +28,8 @@ def reverselowhigh(data_in):
     返回 e803 0000
     """
     data_temp = []
-    for i in range(0, len(data_in), 4):
-        data_temp.append(data_in[i:i + 4])
+    for i in range(0, len(data_in), 2):
+        data_temp.append(data_in[i:i + 2])
     datareversal = ''.join(data_temp[::-1])
     return datareversal
 
