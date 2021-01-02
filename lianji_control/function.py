@@ -314,17 +314,35 @@ class lianjicontrol:
         crc_code = self.crc.crc16(code)
         return code + crc_code
 
+    def engineupoff(self,up,off):
+        """
+        :param up: pulse frequency
+        :param off: pulse frequency
+        :return:
+        """
+        command = 36
+        command = self.change_style(command,2)
+        up = self.change_style(up,8)
+        off = self.change_style(off,8)
+        up = self.reverselowhigh(up)
+        off = self.reverselowhigh(off)
+        code = self.slave_addr + self.function_code+ self.byte_cal+command+up+off+'0'*16
+        crc_code = self.crc.crc16(code)
+        return code +crc_code
+
 if __name__ == "__main__":
-    slave = lianjicontrol('01')
-    lianji =slave.switchmode('01')
-    speed = slave.changespeedandacceleration(1000,1000)
-    line = slave.straight_interpolation(5,0,0,0)
+    slave = lianjicontrol('01') # 01号 从机
+    lianji =slave.switchmode('01') #切换到联机模式
+    speed = slave.changespeedandacceleration(1000,1000) #修改速度，加速度
+    line = slave.straight_interpolation(5,0,0,0) #直线插补
+    engingupoff = slave.engineupoff(1000,1000) # 启动停止速度
     slave_screen = TouchScreen('01')
-    vr = slave_screen.readregister(40,16)
-    print(lianji)
-    print(speed)
-    print(line)
-    print(vr)
+    vr = slave_screen.readregister(40,16) #读取寄存器
+    print('lianji',lianji)
+    print('speed',speed)
+    print('line',line)
+    print('engingupoff',engingupoff)
+    print('vr',vr)
 
 
 
