@@ -28,12 +28,18 @@ def reverselowhigh(data_in):
     返回 e803 0000
     """
     data_temp = []
-    for i in range(0, len(data_in), 2):
-        data_temp.append(data_in[i:i + 2])
+    for i in range(0, len(data_in), 4):
+        data_temp.append(data_in[i:i + 4])
     datareversal = ''.join(data_temp[::-1])
     return datareversal
 
-data = '000005dc'
+data = '00059540'
 print(reverselowhigh(data))
 
-print(hex(1500))
+# print(hex(1256))
+print(int('0x7FFFFF00',16))
+
+# ill = '123;235'
+# kmj = ill.split(';')
+# print(kmj)
+print(hex(99))
