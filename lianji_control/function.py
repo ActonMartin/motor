@@ -234,6 +234,7 @@ class lianjicontrol:
     def straight_interpolation(self,x, y, z, a=None):
         """
         直线插补,字节计数11
+        支持坐标小数点后三位，小数点后多于三位的会被舍去。
         """
         command = 1
         command = self.change_style(command,2)
@@ -247,6 +248,8 @@ class lianjicontrol:
                 low_len = len(low)
                 if low_len < 3:
                     low = low + (3 - low_len) * "0"
+                else:
+                    low = low[:3]
                 all = high + low
             else:
                 all = num_str + "000"
@@ -334,7 +337,7 @@ if __name__ == "__main__":
     slave = lianjicontrol('01') # 01号 从机
     lianji =slave.switchmode('01') #切换到联机模式
     speed = slave.changespeedandacceleration(1000,1000) #修改速度，加速度
-    line = slave.straight_interpolation(5,0,0,0) #直线插补
+    line = slave.straight_interpolation(1,0,0,0) #直线插补
     engingupoff = slave.engineupoff(1000,1000) # 启动停止速度
     slave_screen = TouchScreen('01')
     vr = slave_screen.readregister(40,16) #读取寄存器

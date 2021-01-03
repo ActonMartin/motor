@@ -42,4 +42,14 @@ print(int('0x7FFFFF00',16))
 # ill = '123;235'
 # kmj = ill.split(';')
 # print(kmj)
-print(hex(99))
+# print(hex(99))
+args = {16:16}
+for n,m in args.items():
+    n,m = '%04x'%n,'%04x'%m
+print(n,m)
+
+print(hex(10001))
+a  = '0x00002710'
+print(int(a,16))
+low = '000'
+print(low[:3])
