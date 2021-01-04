@@ -234,6 +234,7 @@ class lianjicontrol:
     def straight_interpolation(self,x, y, z, a=None):
         """
         直线插补,字节计数11
+        支持坐标小数点后三位，小数点后多于三位的会被舍去。
         """
         command = 1
         command = self.change_style(command,2)
