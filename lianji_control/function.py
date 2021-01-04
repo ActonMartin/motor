@@ -333,17 +333,26 @@ class lianjicontrol:
 if __name__ == "__main__":
     slave = lianjicontrol('01') # 01号 从机
     lianji =slave.switchmode('01') #切换到联机模式
+    zidong =slave.switchmode('00') #切换到自动模式
     speed = slave.changespeedandacceleration(1000,1000) #修改速度，加速度
+    speed_ = slave.changespeedandacceleration(8000, 10000)  # 修改速度，加速度
     line = slave.straight_interpolation(5,0,0,0) #直线插补
+    line_ = slave.straight_interpolation(10,0,0,0) #直线插补
     engingupoff = slave.engineupoff(1000,1000) # 启动停止速度
+    engingupoff2 = slave.engineupoff(500,500) # 启动停止速度
     slave_screen = TouchScreen('01')
     vr = slave_screen.readregister(40,16) #读取寄存器
-    print('lianji',lianji)
-    print('speed',speed)
-    print('line',line)
+    print('联机',lianji)
+    print('自动',zidong)
+    print('速度1',speed)
+    print('速度2',speed_)
+    print('直线插补1',line)
+    print('直线插补2',line_)
 
-    print('engingupoff',engingupoff)
+    print('运行停止1',engingupoff)
+    print('运行停止2',engingupoff2)
     print('vr',vr)
+    print(slave.gozero('x'))
 
 
 
