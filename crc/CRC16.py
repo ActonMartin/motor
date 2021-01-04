@@ -83,7 +83,7 @@ class CRC:
 if __name__ == '__main__':
     crc = CRC()
     # res = crc.crc16('010100070001')
-    kk = '01 03 00 29 00 04'
+    kk = '010300290004'
     frequency = 1
     import time
     start = time.time()

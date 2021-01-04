@@ -1,4 +1,5 @@
 from crc.CRC16 import CRC
+from lianji_control.utils import bytecoding
 
 
 class TouchScreen:
@@ -30,6 +31,7 @@ class TouchScreen:
         datareversal = ''.join(data_temp[::-1])
         return datareversal
 
+    @bytecoding
     def readcoilstatus(self,start_addr,number):
         """
         功能码01 读取线圈（端子）状态
@@ -75,6 +77,7 @@ class TouchScreen:
         result = hex2bin(data)
         return result
 
+    @bytecoding
     def readregister(self,variable,number):
         """
         功能码03 读取寄存器命令
@@ -118,9 +121,12 @@ class TouchScreen:
         data_num = [code[i*8:(i+1)*8] for i in range(num)]
         result = []
         for i in range(num):
-            result.append(reverselowhigh(data_num[i]))
+            res = reverselowhigh(data_num[i])
+            res = int(res,16)
+            result.append(res)
         return result
 
+    @bytecoding
     def writecoilstatus(self,addr,data):
         """
         功能码05 写线圈（端子）状态
@@ -142,6 +148,7 @@ class TouchScreen:
         crc_code = self.crc.crc16(code)
         return code+crc_code
 
+    @bytecoding
     def write_multi_registers(self,start_addr,data):
         """
         功能码16 写多个寄存器
@@ -161,7 +168,6 @@ class TouchScreen:
         code = self.slave_addr + function_code + start_addr+howmany+databyte+data_
         crc_code = self.crc.crc16(code)
         return code + crc_code
-
 
 
 class lianjicontrol:
@@ -200,6 +206,8 @@ class lianjicontrol:
         datareversal = ''.join(data_temp[::-1])
         return datareversal
 
+
+    @bytecoding
     def restart_controler(self):
         """功能码123（0x7b）
         从站地址 + 功能码+ crc
@@ -209,6 +217,7 @@ class lianjicontrol:
         crc_code = self.crc.crc16(code)
         return code+crc_code
 
+    @bytecoding
     def readversion(self):
         """
         功能码124（0x7c）
@@ -220,6 +229,7 @@ class lianjicontrol:
         crc_code = self.crc.crc16(code)
         return code + crc_code
 
+    @bytecoding
     def switchmode(self,mode):
         """
         功能码126（0x7e)
@@ -231,6 +241,7 @@ class lianjicontrol:
         crc_code = self.crc.crc16(code)
         return code + crc_code
 
+    @bytecoding
     def straight_interpolation(self,x, y, z, a=None):
         """
         直线插补,字节计数11
@@ -266,6 +277,7 @@ class lianjicontrol:
         crc_code = self.crc.crc16(code)
         return code+crc_code
 
+    @bytecoding
     def gozero(self, direction):
         """
         指定需要返回零点的轴，返回命令
@@ -283,6 +295,7 @@ class lianjicontrol:
                 crc_code = self.crc.crc16(code)
                 return code + crc_code
 
+    @bytecoding
     def turnoffmotor(self,direction):
         """
         关闭指定轴电机，如果是跟随关闭电机一起启动，也会被关闭
@@ -300,6 +313,7 @@ class lianjicontrol:
                 crc_code = self.crc.crc16(code)
                 return code+crc_code
 
+    @bytecoding
     def changespeedandacceleration(self,speed, acceleration):
         """
         :param speed: 单位hz,为0时，不改变速度的设置
@@ -317,6 +331,7 @@ class lianjicontrol:
         crc_code = self.crc.crc16(code)
         return code + crc_code
 
+    @bytecoding
     def engineupoff(self,up,off):
         """
         :param up: pulse frequency
@@ -337,16 +352,18 @@ if __name__ == "__main__":
     slave = lianjicontrol('01') # 01号 从机
     lianji =slave.switchmode('01') #切换到联机模式
     zidong =slave.switchmode('00') #切换到自动模式
-    speed = slave.changespeedandacceleration(1000,1000) #修改速度，加速度
-    speed_ = slave.changespeedandacceleration(8000, 10000)  # 修改速度，加速度
+    speed0 = slave.changespeedandacceleration(10,10) #修改速度，加速度
+    speed = slave.changespeedandacceleration(5000,5000) #修改速度，加速度
+    speed_ = slave.changespeedandacceleration(10000, 10000)  # 修改速度，加速度
     line = slave.straight_interpolation(5,0,0,0) #直线插补
-    line_ = slave.straight_interpolation(10,0,0,0) #直线插补
+    line_ = slave.straight_interpolation(15,0,0,0) #直线插补
     engingupoff = slave.engineupoff(1000,1000) # 启动停止速度
     engingupoff2 = slave.engineupoff(500,500) # 启动停止速度
     slave_screen = TouchScreen('01')
-    vr = slave_screen.readregister(40,16) #读取寄存器
+    vr = slave_screen.readregister(42,2) #读取寄存器
     print('联机',lianji)
     print('自动',zidong)
+    print('速度0', speed0)
     print('速度1',speed)
     print('速度2',speed_)
     print('直线插补1',line)
@@ -355,7 +372,14 @@ if __name__ == "__main__":
     print('运行停止1',engingupoff)
     print('运行停止2',engingupoff2)
     print('vr',vr)
-    print(slave.gozero('x'))
+    print('回零',slave.gozero('x'))
+
+
+    print(slave_screen.readcoilstatus(8,1))
+
+    print(slave_screen.encoderegister(1,'010308000400000004000091D6'))
+    oo = '146A'
+    print(int(oo,16))
 
 
 
