@@ -247,6 +247,8 @@ class lianjicontrol:
                 low_len = len(low)
                 if low_len < 3:
                     low = low + (3 - low_len) * "0"
+                else:
+                    low = low[:3]
                 all = high + low
             else:
                 all = num_str + "000"
