@@ -191,18 +191,19 @@ class lianjicontrol:
         将十进制command转换为16进制
         """
         command = hex(command)[2:]
-        command = (number-len(command))*'0' + command
+        # command = (number-len(command))*'0' + command
+        command = "{0:0>{1}s}".format(command,number)
         return command
 
     @staticmethod
-    def reverselowhigh(data_in):
+    def reverselowhigh(data_in,type):
         """
         传入data = '000003e8'
         返回 e8030000
         """
         data_temp = []
-        for i in range(0, len(data_in), 2):
-            data_temp.append(data_in[i:i + 2])
+        for i in range(0, len(data_in), type):
+            data_temp.append(data_in[i:i + type])
         datareversal = ''.join(data_temp[::-1])
         return datareversal
 
@@ -244,6 +245,7 @@ class lianjicontrol:
     @bytecoding
     def straight_interpolation(self,x, y, z, a=None):
         """
+        <1 直线插补>
         直线插补,字节计数11
         支持坐标小数点后三位，小数点后多于三位的会被舍去。
         """
@@ -264,23 +266,61 @@ class lianjicontrol:
                 all = high + low
             else:
                 all = num_str + "000"
-            hex_num = hex(int(all))[2:]
-            length = len(hex_num)
-            if length < 8:
-                res = (8 - length) * "0" + hex_num
+            all = int(all)
+            if all < 0:
+                hex_num = hex(all & 0xFFFFFFFF)[2:]
+            else:
+                hex_num = hex(all)[2:]
+            # length = len(hex_num)
+            # if length <= 8:
+            #     res = (8 - length) * "0" + hex_num
+            res = '{0:0>8s}'.format(hex_num) #与上述三行同义
             return res
 
         code = self.slave_addr+self.function_code+self.byte_cal+command
         x_hex, y_hex,z_hex,a_hex = get_hex(x),get_hex(y),get_hex(z),get_hex(a)
-        x_hex, y_hex,z_hex,a_hex = self.reverselowhigh(x_hex),self.reverselowhigh(y_hex),self.reverselowhigh(z_hex),self.reverselowhigh(a_hex)
+        x_hex, y_hex,z_hex,a_hex = self.reverselowhigh(x_hex,2),self.reverselowhigh(y_hex,2),self.reverselowhigh(z_hex,2),self.reverselowhigh(a_hex,2)
         code = code + x_hex+y_hex+z_hex+a_hex
         crc_code = self.crc.crc16(code)
         return code+crc_code
 
     @bytecoding
-    def gozero(self, direction):
+    def go_origin(self,direction,siginal_input,method):
         """
-        指定需要返回零点的轴，返回命令
+        <3 返回原点> 执行该指令后，指定的轴一直转动到信号输入端有触发信号，之后电机反转，到触发信号消失后停止，相应轴的内部坐标清零
+        :param direction: 指定回到原点的轴与转动方向,int
+        {1:x轴正传，2:x轴反转，3:y轴正转,4:y轴反转,5:z轴正转,6:z轴反转,7:a轴正转,8:a轴反转,}
+        :param siginal_input: 指定触发信号的输入端
+        0:低电平/接通/是 1:高电平/断开/否
+        :param method: 指定触发方式
+        :return:
+        """
+        command = 3
+        command = self.change_style(command,2)
+        direction = hex(direction)[2:]
+        siginal_input = hex(siginal_input)[2:]
+        method = hex(method)[2:]
+
+        direction = "{0:0>8s}".format(direction)
+        siginal_input = "{0:0>8s}".format(siginal_input)
+        method = "{0:0>8s}".format(method)
+
+        direction = self.reverselowhigh(direction,2)
+        siginal_input = self.reverselowhigh(siginal_input,2)
+        method = self.reverselowhigh(method,2)
+
+        code = self.slave_addr+self.function_code+self.byte_cal+command+direction+siginal_input+method+'0'*8
+        crc_code = self.crc.crc16(code)
+        return code+crc_code
+
+    @bytecoding
+    def go_zero(self, direction):
+        """
+        <5 回到坐标0>  指定需要返回零点的轴，返回命令
+        解释：该指令以直线插补的方式回到0坐标。当执行该指令之前还没有执行过<3 返回原点>
+        与<21 坐标清零>指令，则<5 回到坐标0>就是回到控制器通电时的点。
+        如已经执行过上述两指令，则<5 回到坐标0>就是回到<3 返回原点>与<21 坐标清零>
+        指令完成后时的点
         direction : str 1 X,2 Y,3 YX,4 Z,5 ZX,6 ZY,7 ZYX,8 A,9 AX,10 AY,11 AYX,12 AZ,13 AZX,14 AZY,15 AZYX
         """
         command = 5
@@ -290,7 +330,7 @@ class lianjicontrol:
         for k, v in self.dir_dict.items():
             if dir == sorted(v):
                 data1 = self.change_style(k,8)
-                data1 = self.reverselowhigh(data1)
+                data1 = self.reverselowhigh(data1,2)
                 code = self.slave_addr + self.function_code + self.byte_cal + command + data1 + "0" * 24
                 crc_code = self.crc.crc16(code)
                 return code + crc_code
@@ -308,7 +348,7 @@ class lianjicontrol:
         for k,v in self.dir_dict.items():
             if dir == sorted(v):
                 data1 = self.change_style(k,8)
-                data1 = self.reverselowhigh(data1)
+                data1 = self.reverselowhigh(data1,2)
                 code = self.slave_addr + self.function_code + self.byte_cal + command + data1 + '0'* 24
                 crc_code = self.crc.crc16(code)
                 return code+crc_code
@@ -325,14 +365,14 @@ class lianjicontrol:
         speed = self.change_style(speed,8)
         acceleration = self.change_style(acceleration,8)
 
-        speed = self.reverselowhigh(speed)
-        acceleration = self.reverselowhigh(acceleration)
+        speed = self.reverselowhigh(speed,2)
+        acceleration = self.reverselowhigh(acceleration,2)
         code = self.slave_addr + self.function_code + self.byte_cal+command + speed + acceleration + '0'*16
         crc_code = self.crc.crc16(code)
         return code + crc_code
 
     @bytecoding
-    def engineupoff(self,up,off):
+    def engine_up_off(self,up,off):
         """
         :param up: pulse frequency
         :param off: pulse frequency
@@ -342,8 +382,8 @@ class lianjicontrol:
         command = self.change_style(command,2)
         up = self.change_style(up,8)
         off = self.change_style(off,8)
-        up = self.reverselowhigh(up)
-        off = self.reverselowhigh(off)
+        up = self.reverselowhigh(up,2)
+        off = self.reverselowhigh(off,2)
         code = self.slave_addr + self.function_code+ self.byte_cal+command+up+off+'0'*16
         crc_code = self.crc.crc16(code)
         return code +crc_code
@@ -355,31 +395,28 @@ if __name__ == "__main__":
     speed0 = slave.changespeedandacceleration(10,10) #修改速度，加速度
     speed = slave.changespeedandacceleration(5000,5000) #修改速度，加速度
     speed_ = slave.changespeedandacceleration(10000, 10000)  # 修改速度，加速度
-    line = slave.straight_interpolation(5,0,0,0) #直线插补
+    line = slave.straight_interpolation(-10,0,0,0) #直线插补
     line_ = slave.straight_interpolation(15,0,0,0) #直线插补
-    engingupoff = slave.engineupoff(1000,1000) # 启动停止速度
-    engingupoff2 = slave.engineupoff(500,500) # 启动停止速度
+    engingupoff = slave.engine_up_off(1000,1000) # 启动停止速度
+    engingupoff2 = slave.engine_up_off(500,500) # 启动停止速度
     slave_screen = TouchScreen('01')
-    vr = slave_screen.readregister(42,2) #读取寄存器
+    vr = slave_screen.readregister(29,1) #读取寄存器
+    go_origin = slave.go_origin(1,8,1)
+    print('go_origin',go_origin)
+    print(vr.hex())
     print('联机',lianji)
     print('自动',zidong)
     print('速度0', speed0)
     print('速度1',speed)
     print('速度2',speed_)
-    print('直线插补1',line)
+    print('直线插补1',line.hex())
     print('直线插补2',line_)
 
     print('运行停止1',engingupoff)
     print('运行停止2',engingupoff2)
     print('vr',vr)
-    print('回零',slave.gozero('x'))
+    print('回零',slave.go_zero('x'))
 
-
-    print(slave_screen.readcoilstatus(8,1))
-
-    print(slave_screen.encoderegister(1,'010308000400000004000091D6'))
-    oo = '146A'
-    print(int(oo,16))
 
 
 
