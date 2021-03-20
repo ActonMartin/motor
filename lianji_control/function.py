@@ -291,8 +291,7 @@ class lianjicontrol:
         :param direction: 指定回到原点的轴与转动方向,int
         {1:x轴正传，2:x轴反转，3:y轴正转,4:y轴反转,5:z轴正转,6:z轴反转,7:a轴正转,8:a轴反转,}
         :param siginal_input: 指定触发信号的输入端
-        0:低电平/接通/是 1:高电平/断开/否
-        :param method: 指定触发方式
+        :param method: 指定触发方式 0:低电平/接通/是 1:高电平/断开/否
         :return:
         """
         command = 3

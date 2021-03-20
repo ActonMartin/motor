@@ -71,19 +71,23 @@ class Slave:
         return data
 
     def watch_metal_stopper(self):
+        """
+        检测金属感应器，作用不大
+        :return:
+        """
         while True:
             data = self.read_cils(8,1)
-            time.sleep(0.1)
+            time.sleep(0.5)
 
     def go_straight(self,x,y,z,a):
         code = self.lianji.straight_interpolation(x,y,z,a)
         self.serial.write(code)
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     def change_speed(self,speed,acceleration):
         code = self.lianji.changespeedandacceleration(speed,acceleration)
         self.serial.write(code)
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     def go_origin(self,direction,siginal_input,method):
         """
@@ -91,18 +95,25 @@ class Slave:
         :param direction: 指定回到原点的轴与转动方向,int
         {1:x轴正传，2:x轴反转，3:y轴正转,4:y轴反转,5:z轴正转,6:z轴反转,7:a轴正转,8:a轴反转,}
         :param siginal_input: 指定触发信号的输入端
-        0:低电平/接通/是 1:高电平/断开/否
-        :param method: 指定触发方式
+        :param method: 指定触发方式 0:低电平/接通/是 1:高电平/断开/否
         :return:
         """
         code = self.lianji.go_origin(direction,siginal_input,method)
         self.serial.write(code)
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     def go_zero(self,direction):
+        """
+        <5 回到坐标0>  指定需要返回零点的轴，返回命令
+        解释：该指令以直线插补的方式回到0坐标。当执行该指令之前还没有执行过<3 返回原点>
+        与<21 坐标清零>指令，则<5 回到坐标0>就是回到控制器通电时的点。
+        如已经执行过上述两指令，则<5 回到坐标0>就是回到<3 返回原点>与<21 坐标清零>
+        指令完成后时的点
+        direction : str 1 X,2 Y,3 YX,4 Z,5 ZX,6 ZY,7 ZYX,8 A,9 AX,10 AY,11 AYX,12 AZ,13 AZX,14 AZY,15 AZYX
+        """
         code = self.lianji.go_zero(direction)
         self.serial.write(code)
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     def turnoff_serial(self):
         "关闭串口"
@@ -112,15 +123,50 @@ class Slave:
 if __name__ == "__main__":
     slave1 = Slave('COM4','01')
 
-    print(slave1.read_holding_registers(42,1))
-    slave1.go_origin(1,8,0)
-    slave1.change_speed(12000,200)
-    slave1.go_straight(-10.005,0,0,0)
-    slave1.change_speed(25000,200)
-    slave1.go_straight(-20,0,0,0)
-    slave1.change_speed(45000, 200)
-    slave1.go_straight(-40, 0, 0, 0)
-    slave1.change_speed(50000, 200)
-    slave1.go_straight(-50, 0, 0, 0)
-    slave1.go_zero('x')
+    # print(slave1.read_holding_registers(42,1))
+    # slave1.go_origin(1,8,0)
+    # slave1.change_speed(12000,200)
+    # slave1.go_straight(-10.005,0,0,0)
+    # slave1.change_speed(25000,200)
+    # slave1.go_straight(-20,0,0,0)
+    # slave1.change_speed(45000, 200)
+    # slave1.go_straight(-40, 0, 0, 0)
+    # slave1.change_speed(50000, 200)
+    # slave1.go_straight(-50, 0, 0, 0)
+    # slave1.go_zero('x')
+    # slave1.turnoff_serial()
+
+    slave1.write_single_register(90,12800) # 设置x轴细分
+    # slave1.write_single_register(92, 3200)  # 设置y轴细分
+    # slave1.write_single_register(94, 3200)  # 设置z轴细分
+    # slave1.write_single_register(96, 3200)  # 设置a轴细分
+
+    slave1.write_single_register(98, 4) #设置x轴转一圈的螺距
+    slave1.write_single_register(100, 4) #设置y轴转一圈的螺距
+    slave1.write_single_register(102, 4) #设置z轴转一圈的螺距
+    slave1.write_single_register(104, 4) #设置a轴转一圈的螺距
+
+    slave1.change_speed(25000, 100)
+    # slave1.go_origin(1, 8, 0)
+    time.sleep(2)
+    slave1.go_straight(-12, 0, 0, 0)
+    # import random
+    # for i in range(1000):
+    #     x = random.sample(range(10,35),3)
+    #     x1,x2,x3 = x[0],x[1],x[2]
+    #     print('第 {} 次,随机数{},{},{}'.format(i,x1,x2,x3))
+    #     slave1.change_speed(40000, 200)
+    #     slave1.go_straight(-x1, 0, 0, 0)
+    #     time.sleep(3)
+    # slave1.go_zero('x')
+    # slave1.change_speed(50000, 200)
+    # slave1.go_straight(-30, 0, 0, 0) #填写成30的话，就抵着了，控制器以为走了，往回走就会多走。
+    # slave1.go_zero('x')
+
+    # slave1.change_speed(10000, 200)
+    # slave1.go_straight(-30, 0, 0, 0)
+    # slave1.change_speed(3000, 200)
+    # slave1.go_zero('x')
     slave1.turnoff_serial()
+
+
