@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from lianji_control.utils import distance
 
 
+@distance
 def calR(height):
     height_ = [0.284271247461902,4.30228320103704,7.82945715469326,10.9991987097171,13.8927201313068,16.5638586749397,
                19.0505047794389,21.3805376641446,23.5751878329105,25.6510717507116,27.6214886532175,29.497282544482,
@@ -16,5 +18,7 @@ def calR(height):
     r = p1(height)
     return r
 
-fun = calR(12)
-print(fun)
+
+if __name__ == "__main__":
+    fun = calR(20)
+    print(fun)

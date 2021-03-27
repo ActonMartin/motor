@@ -14,11 +14,11 @@ x = [0.284271247461902,4.30228320103704,7.82945715469326,10.9991987097171,13.892
                59.1492971859211,59.8973122455971,60.621385680884]
 x = np.array(x)
 print('x is :\n',x)
-num = [i+1 for i in range(len(x))]
+num = [i for i in range(len(x))]
 y = np.array(num)
 print('y is :\n',y)
 #用7次多项式拟合
-f1 = np.polyfit(x, y, 7)
+f1 = np.polyfit(x, y, 8)
 print('f1 is :\n',f1)
 p1 = np.poly1d(f1)
 print('p1 is :\n',p1)
@@ -31,8 +31,14 @@ plt.legend(loc=4) #指定legend的位置右下角
 plt.title('polyfitting')
 plt.show()
 
-w = 12
+w = 36.214
 print("w={}, value={}".format(w,p1(w)))
 
 
-print(np.max(abs(y-yvals)))
+# print(np.max(abs(y-yvals)))
+print(y-yvals)
+y_fit = []
+for i in x:
+    y_fit.append(p1(i))
+res = list(zip(y_fit,y))
+print(res)

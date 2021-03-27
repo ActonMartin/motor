@@ -119,23 +119,21 @@ class Slave:
         "关闭串口"
         self.serial.close()
 
+    def delay(self,frequency,xi_fen,step_length,distance):
+        """
+        :param frequency: 频率25000
+        :param xi_fen: 细分数 12800
+        :param step_length: 步进电机一圈走的步长 4mm
+        :return: 需要的延时 s
+        公式 frequency*60/((360/1.8)*(xi_fen/200)) 得到 转每分钟
+        """
+        speed = frequency/((360/1.8)*(xi_fen/200))*step_length #得到 mm每秒
+        time = distance/speed
+        return time
+
 
 if __name__ == "__main__":
     slave1 = Slave('COM4','01')
-
-    # print(slave1.read_holding_registers(42,1))
-    # slave1.go_origin(1,8,0)
-    # slave1.change_speed(12000,200)
-    # slave1.go_straight(-10.005,0,0,0)
-    # slave1.change_speed(25000,200)
-    # slave1.go_straight(-20,0,0,0)
-    # slave1.change_speed(45000, 200)
-    # slave1.go_straight(-40, 0, 0, 0)
-    # slave1.change_speed(50000, 200)
-    # slave1.go_straight(-50, 0, 0, 0)
-    # slave1.go_zero('x')
-    # slave1.turnoff_serial()
-
     slave1.write_single_register(90,12800) # 设置x轴细分
     # slave1.write_single_register(92, 3200)  # 设置y轴细分
     # slave1.write_single_register(94, 3200)  # 设置z轴细分
@@ -146,19 +144,30 @@ if __name__ == "__main__":
     slave1.write_single_register(102, 4) #设置z轴转一圈的螺距
     slave1.write_single_register(104, 4) #设置a轴转一圈的螺距
 
-    slave1.change_speed(25000, 100)
-    # slave1.go_origin(1, 8, 0)
+    slave1.change_speed(50000, 200)
+    slave1.go_origin(1, 8, 0)
     time.sleep(2)
-    slave1.go_straight(-12, 0, 0, 0)
-    # import random
-    # for i in range(1000):
-    #     x = random.sample(range(10,35),3)
-    #     x1,x2,x3 = x[0],x[1],x[2]
-    #     print('第 {} 次,随机数{},{},{}'.format(i,x1,x2,x3))
-    #     slave1.change_speed(40000, 200)
-    #     slave1.go_straight(-x1, 0, 0, 0)
-    #     time.sleep(3)
-    # slave1.go_zero('x')
+    # slave1.go_straight(-12, 0, 0, 0)
+    import random
+    for i in range(200):
+        x = random.sample(range(10,35),3)
+        x1,x2,x3 = x[0],x[1],x[2]
+        dd = slave1.delay(50000,12800,4,x1)+3
+        slave1.change_speed(50000, 200)
+
+        slave1.go_straight(-x1, 0, 0, 0)
+
+        print('sleep {}s'.format(dd))
+        time.sleep(dd)
+
+        slave1.go_zero('x')
+
+        print('sleep {}s'.format(dd))
+        time.sleep(dd)
+
+        # print('第 {} 次,随机数{},{},{}'.format(i, x1, x2, x3))
+        print('第 {} 次'.format(i))
+        print('-'*30)
     # slave1.change_speed(50000, 200)
     # slave1.go_straight(-30, 0, 0, 0) #填写成30的话，就抵着了，控制器以为走了，往回走就会多走。
     # slave1.go_zero('x')
