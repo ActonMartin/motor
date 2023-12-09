@@ -1,5 +1,6 @@
-from crc.CRC16 import CRC
+# from crc.CRC16 import CRC
 from lianji_control.utils import bytecoding
+from lianji_control.utilty.CRC16 import CRC
 
 
 class TouchScreen:
@@ -49,7 +50,7 @@ class TouchScreen:
         number_addr = (4-len(str(number)))*'0' + str(number)
 
         code = self.slave_addr+function_code+port_addr+number_addr
-        print()
+        # print()
         crc_code = self.crc.crc16(code)
         return code+crc_code
 
@@ -271,10 +272,12 @@ class lianjicontrol:
                 hex_num = hex(all & 0xFFFFFFFF)[2:]
             else:
                 hex_num = hex(all)[2:]
-            # length = len(hex_num)
-            # if length <= 8:
-            #     res = (8 - length) * "0" + hex_num
-            res = '{0:0>8s}'.format(hex_num) #与上述三行同义
+            length = len(hex_num)
+            if length <= 8:
+                res = (8 - length) * "0" + hex_num
+            else:
+                res = hex_num[-8:]
+            # res = '{0:0>8s}'.format(hex_num) #与上述三行同义
             return res
 
         code = self.slave_addr+self.function_code+self.byte_cal+command
@@ -339,6 +342,7 @@ class lianjicontrol:
         """
         关闭指定轴电机，如果是跟随关闭电机一起启动，也会被关闭
         :param direction:
+        direction : str 1 X,2 Y,3 YX,4 Z,5 ZX,6 ZY,7 ZYX,8 A,9 AX,10 AY,11 AYX,12 AZ,13 AZX,14 AZY,15 AZYX
         :return:
         """
         command = 6
@@ -371,7 +375,7 @@ class lianjicontrol:
         return code + crc_code
 
     @bytecoding
-    def engine_up_off(self,up,off):
+    def engine_up_off_speed(self,up,off):
         """
         :param up: pulse frequency
         :param off: pulse frequency
@@ -391,31 +395,35 @@ if __name__ == "__main__":
     slave = lianjicontrol('01') # 01号 从机
     lianji =slave.switchmode('01') #切换到联机模式
     zidong =slave.switchmode('00') #切换到自动模式
-    speed0 = slave.changespeedandacceleration(10,10) #修改速度，加速度
-    speed = slave.changespeedandacceleration(5000,5000) #修改速度，加速度
-    speed_ = slave.changespeedandacceleration(10000, 10000)  # 修改速度，加速度
-    line = slave.straight_interpolation(-10,0,0,0) #直线插补
-    line_ = slave.straight_interpolation(15,0,0,0) #直线插补
-    engingupoff = slave.engine_up_off(1000,1000) # 启动停止速度
-    engingupoff2 = slave.engine_up_off(500,500) # 启动停止速度
-    slave_screen = TouchScreen('01')
-    vr = slave_screen.readregister(29,1) #读取寄存器
-    go_origin = slave.go_origin(1,8,1)
-    print('go_origin',go_origin)
-    print(vr.hex())
-    print('联机',lianji)
-    print('自动',zidong)
-    print('速度0', speed0)
-    print('速度1',speed)
-    print('速度2',speed_)
-    print('直线插补1',line.hex())
-    print('直线插补2',line_)
+    # speed0 = slave.changespeedandacceleration(10,10) #修改速度，加速度
+    # speed = slave.changespeedandacceleration(5000,5000) #修改速度，加速度
+    # speed_ = slave.changespeedandacceleration(10000, 10000)  # 修改速度，加速度
+    # line = slave.straight_interpolation(-10,0,0,0) #直线插补
+    # line_ = slave.straight_interpolation(15,0,0,0) #直线插补
+    # engingupoff = slave.engine_up_off(1000,1000) # 启动停止速度
+    # engingupoff2 = slave.engine_up_off(500,500) # 启动停止速度
+    # slave_screen = TouchScreen('01')
+    # vr = slave_screen.readregister(29,1) #读取寄存器
+    # go_origin = slave.go_origin(1,8,1)
+    # print('go_origin',go_origin)
+    # print(vr.hex())
+    # print('联机',lianji)
+    # print('自动',zidong)
+    # print('速度0', speed0)
+    # print('速度1',speed)
+    # print('速度2',speed_)
+    # print('直线插补1',line.hex())
+    # print('直线插补2',line_)
+    #
+    # print('运行停止1',engingupoff)
+    # print('运行停止2',engingupoff2)
+    # print('vr',vr)
+    # print('回零',slave.go_zero('x'))
 
-    print('运行停止1',engingupoff)
-    print('运行停止2',engingupoff2)
-    print('vr',vr)
-    print('回零',slave.go_zero('x'))
-
+    # line = slave.straight_interpolation(10, 5555555, 5555555, 5555555)  # 直线插补
+    # print(line)
+    codea = slave.turnoffmotor('XYZ')
+    print(codea)
 
 
 

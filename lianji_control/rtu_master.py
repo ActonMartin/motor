@@ -11,8 +11,8 @@ class Slave:
     def __init__(self,port,slave_id):
         # logger = modbus_tk.utils.create_logger("console")
         self.slave_id = int(slave_id)
-        self.serial = serial.Serial(port=port, baudrate=115200, bytesize=8, parity='N', stopbits=1, xonxoff=0)
-        self.master = modbus_rtu.RtuMaster(self.serial)
+        self.serial_ = serial.Serial(port=port, baudrate=115200, bytesize=8, parity='N', stopbits=1, xonxoff=0)
+        self.master = modbus_rtu.RtuMaster(self.serial_)
         self.master.set_timeout(3.0)
         self.master.set_verbose(True)
 
@@ -20,10 +20,11 @@ class Slave:
         # 先进入联机模式
         self.lianji_()
 
+
     def lianji_(self):
         lianji_mode = self.lianji.switchmode('01')
-        self.serial.write(lianji_mode)
-        time.sleep(0.5)
+        self.serial_.write(lianji_mode)
+        time.sleep(0.1)
 
     def read_cils(self,start,number):
         """
@@ -45,6 +46,8 @@ class Slave:
         :return:
         """
         start = start-1
+        # data_format = ">" + (number * "h")
+        # data = self.master.execute(self.slave_id,cst.READ_HOLDING_REGISTERS,start,number,data_format=data_format)
         data = self.master.execute(self.slave_id,cst.READ_HOLDING_REGISTERS,start,number)
         return data
 
@@ -68,7 +71,19 @@ class Slave:
         """
         start = start-1
         data = self.master.execute(self.slave_id, cst.WRITE_SINGLE_REGISTER, start, output_value=value)
+        time.sleep(0.5)
         return data
+
+    def clera_axis_data(self,direction):
+        """
+        清除轴坐标
+        :param direction:
+        1:x轴 2:y 3:yx 4:z 5:zx 6:zy 7:zyx 8:a 9:ax 10:ay 11:ayx 12:az 13:azx 14:azy 15:azyx
+        :return:
+        """
+        code = self.lianji.clera_axis_data(direction)
+        self.serial_.write(code)
+        time.sleep(0.1)
 
     def watch_metal_stopper(self):
         """
@@ -80,14 +95,34 @@ class Slave:
             time.sleep(0.5)
 
     def go_straight(self,x,y,z,a):
+        """
+        :param x: 给一个数字，当一个轴不使用的时候，给一个None
+        :param y: 给一个数字，当一个轴不使用的时候，给一个None
+        :param z: 给一个数字，当一个轴不使用的时候，给一个None
+        :param a: 给一个数字，当一个轴不使用的时候，给一个None
+        :return: 发送命令
+        """
+        if x is None:
+            x = 2147483647
+        if y is None:
+            y = 2147483647
+        if z is None:
+            z = 2147483647
+        if a is None:
+            a = 2147483647
         code = self.lianji.straight_interpolation(x,y,z,a)
-        self.serial.write(code)
-        time.sleep(0.5)
+        self.serial_.write(code)
+        time.sleep(0.1)
 
     def change_speed(self,speed,acceleration):
         code = self.lianji.changespeedandacceleration(speed,acceleration)
-        self.serial.write(code)
-        time.sleep(0.5)
+        self.serial_.write(code)
+        time.sleep(0.1)
+
+    def startup_end_speed(self,start_speed,end_speed):
+        code = self.lianji.engine_up_off_speed(start_speed,end_speed)
+        self.serial_.write(code)
+        time.sleep(0.1)
 
     def go_origin(self,direction,siginal_input,method):
         """
@@ -99,8 +134,30 @@ class Slave:
         :return:
         """
         code = self.lianji.go_origin(direction,siginal_input,method)
-        self.serial.write(code)
-        time.sleep(0.5)
+        self.serial_.write(code)
+        time.sleep(0.1)
+    def move2switcher(self,direction,siginal_input,method):
+        """
+        <4 转动到开关触发> 执行该指令后，指定的轴一直转动到信号输入端有触发信号，到触发信号消失后停止
+        :param direction: 指定回到原点的轴与转动方向,int
+        {1:x轴正传，2:x轴反转，3:y轴正转,4:y轴反转,5:z轴正转,6:z轴反转,7:a轴正转,8:a轴反转,}
+        :param siginal_input: 指定触发信号的输入端
+        :param method: 指定触发方式 0:低电平/接通/是 1:高电平/断开/否
+        :return:
+        """
+        code = self.lianji.move2switcher(direction,siginal_input,method)
+        self.serial_.write(code)
+        time.sleep(0.1)
+
+    def absolute_relative_coordinate(self,method=1):
+        """
+        绝对相对坐标
+        :param method:0 绝对坐标运动方式，1 相对坐标运动方式
+        :return:
+        """
+        code = self.lianji.absolute_relative_coordinate(method)
+        self.serial_.write(code)
+        time.sleep(0.1)
 
     def go_zero(self,direction):
         """
@@ -112,12 +169,19 @@ class Slave:
         direction : str 1 X,2 Y,3 YX,4 Z,5 ZX,6 ZY,7 ZYX,8 A,9 AX,10 AY,11 AYX,12 AZ,13 AZX,14 AZY,15 AZYX
         """
         code = self.lianji.go_zero(direction)
-        self.serial.write(code)
-        time.sleep(0.5)
+        self.serial_.write(code)
+        time.sleep(0.1)
 
     def turnoff_serial(self):
         "关闭串口"
-        self.serial.close()
+        self.serial_.close()
+
+    def turnoff_motor(self,direction):
+        # axis是字符串
+        # direction : str 1 X,2 Y,3 YX,4 Z,5 ZX,6 ZY,7 ZYX,8 A,9 AX,10 AY,11 AYX,12 AZ,13 AZX,14 AZY,15 AZYX
+        code = self.lianji.turnoffmotor(direction)
+        self.serial_.write(code)
+        time.sleep(0.1)
 
     def delay(self,frequency,xi_fen,step_length,distance):
         """
